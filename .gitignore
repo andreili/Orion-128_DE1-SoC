@@ -11,7 +11,9 @@ db*
 greybox*
 incremental_db*
 output_files*
-ROM/*
+ROM/*.bin
+ROM/*.dat
+ROM/*.ord
 *.cmp
 *0002.*
 *.vo
