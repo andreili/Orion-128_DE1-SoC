@@ -110,7 +110,7 @@ signal vram_col			: std_logic_vector( 8 downto 0);
 signal vram_row			: std_logic_vector( 7 downto 0);
 signal vaddr				: std_logic_vector(15 downto 0);
 signal vdata				: std_logic_vector(15 downto 0);
-signal vdata1				: std_logic_vector(15 downto 0);
+signal vdata_buf			: std_logic_vector(15 downto 0);
 
 signal wdata0				: std_logic_vector(7 downto 0);
 signal wdata1				: std_logic_vector(7 downto 0);
@@ -121,9 +121,8 @@ signal mem_data1			: std_logic_vector(7 downto 0);
 signal mem_data2			: std_logic_vector(7 downto 0);
 signal mem_data3			: std_logic_vector(7 downto 0);
 
-signal vga_end_8pxls		: std_logic;
+signal vdata_to_buf		: std_logic;
 signal blank_n				: std_logic;
-signal pxl_data			: std_logic_vector(31 downto 0);
 
 begin
 
@@ -188,88 +187,94 @@ VGA_HS <= h_sync;
 VGA_VS <= v_sync;
 VGA_SYNC_N <= '0';
 
-	process (clk)
+	process (h_cnt, h480en)
 	begin
-		if (rising_edge(clk)) then
-			if (h_cnt = 10D"0") then
-				h_blank <= '0';
-			elsif (((h_cnt = 10D"384") and (h480en = '0')) or ((h_cnt = 10D"480") and (h480en = '1'))) then
-				h_blank <= '1';
-			end if;
+		if (h_cnt = 10D"8") then
+			h_blank <= '0';
+		elsif (((h_cnt = 10D"392") and (h480en = '0')) or ((h_cnt = 10D"488") and (h480en = '1'))) then
+			h_blank <= '1';
+		end if;
+	end process;
 
-			if (v_cnt = 10D"0") then
-				v_blank <= '0';
-			elsif (v_cnt = 10D"255") then
-				v_blank <= '1';
-			end if;
+	process (v_cnt)
+	begin
+		if (v_cnt = 10D"0") then
+			v_blank <= '0';
+		elsif (v_cnt = 10D"256") then
+			v_blank <= '1';
 		end if;
 	end process;
 
 blank_n <= not (h_blank or v_blank);
-VGA_BLANK_N <= blank_n;
---VGA_BLANK_N <= '1';
+--VGA_BLANK_N <= blank_n;
+VGA_BLANK_N <= '1';
 
 --------------------------------------------------------------------------------
 --                         ФОРМИРОВАНИЕ АДРЕСА ПИКСЕЛЯ                        --
 --------------------------------------------------------------------------------
 
-	process (clk)
-	begin
-		if (rising_edge(clk)) then
-			--if (h_blank = '0') then
-				vram_col <= h_cnt(8 downto 0);
-			--else
-			--	vram_col <= (others => '0');
-			--end if;
-		end if;
-	end process;
-
-	process (clk)
-	begin
-		if (rising_edge(clk)) then
-			--if (v_blank = '0') then
-				vram_row <= v_cnt(7 downto 0);
-			--else
-			--	vram_row <= (others => '0');
-			--end if;
-		end if;
-	end process;
-
+vram_col <= h_cnt(8 downto 0);
+vram_row <= v_cnt(7 downto 0);
 vaddr <= video_bank & vram_col(8 downto 3) & vram_row;
 
 --------------------------------------------------------------------------------
 --                       ПРЕОБРАЗОВАНИЕ ТЕКУЩЕГО ПИКСЕЛЯ                      --
 --------------------------------------------------------------------------------
 
-vga_end_8pxls <= (not vram_col(2)) and (not vram_col(1)) and (not vram_col(0));
-/*
-pxl: orion_vconv
+vdata_to_buf <= (vram_col(2)) and (vram_col(1)) and (vram_col(0));
+
+pxl: orion_pxl_conv
 	port map (
-		clk,
-		vdata,
+		vdata_buf(7),
+		vdata_buf(15),
+		vdata_buf(15 downto 8),
 		video_mode,
-		vga_end_8pxls,
+		blank_n,
 		R,
 		G,
 		B,
 		I
-	);*/
+	);
 
-	/*process (clk, vga_end_8pxls)
+	--load RAM data, when pixel counter is going from 7 to 0
+	-- low byte
+	process (clk)
 	begin
-		if (rising_edge(clk) and (vga_end_8pxls = '1')) then
-			if (h_blank = '1') then
-				vdata1 <= (others => '0');
+		if (rising_edge(clk)) then
+			if (vdata_to_buf = '1') then
+				vdata_buf(7 downto 0) <= vdata(7 downto 0);
 			else
-				vdata1(7 downto 0) <= vdata(7 downto 0);
-				if (video_mode(1) = '1') then
-					vdata1(15 downto 8) <= vdata(15 downto 8);
+				-- shift to right
+				vdata_buf(7 downto 0) <= vdata_buf(6 downto 0) & '0';
+			end if;
+		end if;
+	end process;
+
+	-- hight byte
+	process (clk)
+	begin
+		if (rising_edge(clk)) then
+			if (vdata_to_buf = '1') then
+				if (video_mode(2) = '0') then
+					-- monochrome - reset
+					vdata_buf(15 downto 8) <= 8D"0";
 				else
-					vdata1(15 downto 8) <= 8D"0";
+					-- colors modes
+					vdata_buf(15 downto 8) <= vdata(15 downto 8);
+				end if;
+			else
+				if (video_mode(2) = '0') then
+					-- monochrome - reset
+					vdata_buf(15 downto 8) <= 8D"0";
+				elsif (video_mode(1) = '0') then
+					-- 4 color mode - shift to right
+					vdata_buf(15 downto 8) <= vdata_buf(14 downto 8) & '0';
+				else 
+					-- 16 colors mode - not changed
 				end if;
 			end if;
 		end if;
-	end process;*/
+	end process;
 
 --------------------------------------------------------------------------------
 --                        ВЫВОД ДАННЫХ НА VGA-ВЫХОД                           --
@@ -280,8 +285,8 @@ VGA_R(2) <= R;
 VGA_R(3) <= R;
 VGA_R(4) <= R;
 VGA_R(5) <= R;
-VGA_R(6) <= R;
-VGA_R(7)	<= I;
+VGA_R(6) <= R and I;
+VGA_R(7)	<= R;
 
 VGA_G(0) <= G;
 VGA_G(1) <= G;
@@ -289,8 +294,8 @@ VGA_G(2) <= G;
 VGA_G(3) <= G;
 VGA_G(4) <= G;
 VGA_G(5) <= G;
-VGA_G(6) <= G;
-VGA_G(7)	<= I;
+VGA_G(6) <= G and I;
+VGA_G(7)	<= G;
 
 VGA_B(0) <= B;
 VGA_B(1) <= B;
@@ -298,152 +303,8 @@ VGA_B(2) <= B;
 VGA_B(3) <= B;
 VGA_B(4) <= B;
 VGA_B(5) <= B;
-VGA_B(6) <= B;
-VGA_B(7)	<= I;
-
-with (vram_col(2 downto 0)) select R <=
-	pxl_data(28) when "000",
-	pxl_data(24) when "001",
-	pxl_data(20) when "010",
-	pxl_data(16) when "011",
-	pxl_data(12) when "100",
-	pxl_data( 8) when "101",
-	pxl_data( 4) when "110",
-	pxl_data( 0) when "111";
-
-with (vram_col(2 downto 0)) select G <=
-	pxl_data(29) when "000",
-	pxl_data(25) when "001",
-	pxl_data(21) when "010",
-	pxl_data(17) when "011",
-	pxl_data(13) when "100",
-	pxl_data( 9) when "101",
-	pxl_data( 5) when "110",
-	pxl_data( 1) when "111";
-
-with (vram_col(2 downto 0)) select B <=
-	pxl_data(30) when "000",
-	pxl_data(26) when "001",
-	pxl_data(22) when "010",
-	pxl_data(18) when "011",
-	pxl_data(14) when "100",
-	pxl_data(10) when "101",
-	pxl_data( 6) when "110",
-	pxl_data( 2) when "111";
-
-with (vram_col(2 downto 0)) select I <=
-	pxl_data(31) when "000",
-	pxl_data(27) when "001",
-	pxl_data(23) when "010",
-	pxl_data(19) when "011",
-	pxl_data(15) when "100",
-	pxl_data(11) when "101",
-	pxl_data( 7) when "110",
-	pxl_data( 3) when "111";
-
-pxl_7: orion_pxl_conv
-	port map (
-		vdata(0),
-		vdata(8),
-		vdata(15 downto 8),
-		video_mode,
-		blank_n,
-		pxl_data( 0),
-		pxl_data( 1),
-		pxl_data( 2),
-		pxl_data( 3)
-	);
-
-pxl_6: orion_pxl_conv
-	port map (
-		vdata(1),
-		vdata(9),
-		vdata(15 downto 8),
-		video_mode,
-		blank_n,
-		pxl_data( 4),
-		pxl_data( 5),
-		pxl_data( 6),
-		pxl_data( 7)
-	);
-
-pxl_5: orion_pxl_conv
-	port map (
-		vdata(2),
-		vdata(10),
-		vdata(15 downto 8),
-		video_mode,
-		blank_n,
-		pxl_data( 8),
-		pxl_data( 9),
-		pxl_data(10),
-		pxl_data(11)
-	);
-
-pxl_4: orion_pxl_conv
-	port map (
-		vdata(3),
-		vdata(11),
-		vdata(15 downto 8),
-		video_mode,
-		blank_n,
-		pxl_data(12),
-		pxl_data(13),
-		pxl_data(14),
-		pxl_data(15)
-	);
-
-pxl_3: orion_pxl_conv
-	port map (
-		vdata(4),
-		vdata(12),
-		vdata(15 downto 8),
-		video_mode,
-		blank_n,
-		pxl_data(16),
-		pxl_data(17),
-		pxl_data(18),
-		pxl_data(19)
-	);
-
-pxl_2: orion_pxl_conv
-	port map (
-		vdata(5),
-		vdata(13),
-		vdata(15 downto 8),
-		video_mode,
-		blank_n,
-		pxl_data(20),
-		pxl_data(21),
-		pxl_data(22),
-		pxl_data(23)
-	);
-
-pxl_1: orion_pxl_conv
-	port map (
-		vdata(6),
-		vdata(14),
-		vdata(15 downto 8),
-		video_mode,
-		blank_n,
-		pxl_data(24),
-		pxl_data(25),
-		pxl_data(26),
-		pxl_data(27)
-	);
-
-pxl_0: orion_pxl_conv
-	port map (
-		vdata(7),
-		vdata(15),
-		vdata(15 downto 8),
-		video_mode,
-		blank_n,
-		pxl_data(28),
-		pxl_data(29),
-		pxl_data(30),
-		pxl_data(31)
-	);
+VGA_B(6) <= B and I;
+VGA_B(7)	<= B;
 
 -- port A - CPU
 -- port B - GPU
@@ -453,7 +314,7 @@ ram0: ram_dualp
 		addr,
 		vaddr,
 		clk,
-		clk_mem,
+		clk,
 		wdata0,
 		8D"0",	-- video - RO
 		'1',		-- RE
@@ -472,7 +333,7 @@ ram1: ram_dualp
 		addr,
 		vaddr,
 		clk,
-		clk_mem,
+		clk,
 		wdata1,
 		8D"0",	-- video - RO
 		'1',		-- RE
@@ -508,7 +369,21 @@ wdata1 <= data;
 wdata2 <= data;
 wdata3 <= data;
 
-	process (clk)
+	process (rd, mem_cs)
+	begin
+		if (rd = '1') then
+			case mem_cs is
+				when "0001" => 	data <= mem_data0;
+				when "0010" => 	data <= mem_data1;
+				when "0100" =>		data <= mem_data2;
+				when "1000" =>		data <= mem_data3;
+				when others =>		data <= (others => 'Z');
+			end case;
+		else
+			data <= (others => 'Z');
+		end if;
+	end process;
+	/*process (clk)
 	begin
 		if (rising_edge(clk)) then
 			if (rd = '1') then
@@ -527,6 +402,6 @@ wdata3 <= data;
 				data <= (others => 'Z');
 			end if;
 		end if;
-	end process;
+	end process;*/
 
 end rtl;
