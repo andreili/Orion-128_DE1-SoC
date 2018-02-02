@@ -15,6 +15,7 @@ entity orion_cpu is
 		rd				: out std_logic;
 		wr				: out std_logic;
 		dsyn			: out std_logic;
+		reset			: out std_logic;
 
 		video_bank	: out std_logic_vector(1 downto 0);
 		video_mode	: out std_logic_vector(2 downto 0);
@@ -92,7 +93,7 @@ architecture rtl of orion_cpu is
 signal clk_F1				: std_logic;
 signal clk_F2				: std_logic;
 
-signal reset				: std_logic;
+signal reset_inner		: std_logic;
 signal cpu_addr			: std_logic_vector(15 downto 0);
 signal cpu_ready			: std_logic;
 signal cpu_int				: std_logic;
@@ -111,10 +112,6 @@ signal CSROM				: std_logic;
 signal rom_re				: std_logic;
 signal rom_data			: std_logic_vector(7 downto 0);
 
---signal vbank				: std_logic_vector(1 downto 0);
---signal vmode				: std_logic_vector(2 downto 0);
---signal io_cs				: std_logic_vector(3 downto 0)
-
 signal cnt_clk				: std_logic_vector(2 downto 0);
 
 begin
@@ -122,6 +119,7 @@ begin
 wr <= cpu_wr;
 rd <= cpu_rd;
 addr<= cpu_addr;
+reset <= reset_inner;
 
 cpu_int <= not cpu_int_n;
 cpu_inte_n <= not cpu_inte;
@@ -131,8 +129,8 @@ cpu_wr <= not cpu_wr_n;
 --                    ФОРМИРОВАНИЕ ТАКТОВЫХ СИГНАЛОВ                          --
 --------------------------------------------------------------------------------
 
-clk_F1 <= (cnt_clk(0) and cnt_clk(1));
-clk_F2 <= (not cnt_clk(1));
+clk_F1 <= (cnt_clk(1) and cnt_clk(2));
+clk_F2 <= (not cnt_clk(2));
 	process (clk)
 	begin
 		if (rising_edge(clk)) then
@@ -145,7 +143,7 @@ cpu: vm80a
 		pin_clk		=> clk,
 		pin_f1		=> clk_F1,
 		pin_f2		=> clk_F2,
-		pin_reset	=> reset,
+		pin_reset	=> reset_inner,
 		pin_a			=> cpu_addr,
 		pin_d			=> data,
 		pin_hold		=> '0',
@@ -170,7 +168,7 @@ ports: orion_ports
 		vframe_end,
 		cpu_addr,
 		data,
-		reset,
+		reset_inner,
 		dsyn,
 		CSROM,
 		cpu_ready,

@@ -11,11 +11,11 @@ entity orion_debug is
 		addr			: in  std_logic_vector(15 downto 0);
 		data			: in  std_logic_vector(7 downto 0);
 
-		step_en		: in  std_logic;
+		/*step_en		: in  std_logic;
 		step_btn		: in  std_logic;
 		sync_in		: in  std_logic;
 		sync_out		: out std_logic;
-		ready			: out std_logic;
+		ready			: out std_logic;*/
 
 		HEX0			: out std_logic_vector(6 downto 0);
 		HEX1			: out std_logic_vector(6 downto 0);
@@ -87,7 +87,7 @@ h5: hex_led
 		HEX5
 	);
 
-sync_out <= sync_in;
+/*sync_out <= sync_in;
 	process(step_en, sync_in, step_btn)
 	begin
 		if (step_en = '0') then
@@ -97,6 +97,6 @@ sync_out <= sync_in;
 		elsif (rising_edge(step_btn)) then
 			ready <= '1';
 		end if;
-	end process;
+	end process;*/
 
 end rtl;

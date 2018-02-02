@@ -7,7 +7,6 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 entity orion_video is
 	port (
 		clk			: in  std_logic;	-- 25MHz
-		clk_mem		: in  std_logic;
 
 		addr			: in  std_logic_vector(15 downto 0);
 		data			: inout std_logic_vector(7 downto 0);
@@ -383,25 +382,5 @@ wdata3 <= data;
 			data <= (others => 'Z');
 		end if;
 	end process;
-	/*process (clk)
-	begin
-		if (rising_edge(clk)) then
-			if (rd = '1') then
-				if (mem_cs(0) = '1') then
-					data <= mem_data0;
-				elsif (mem_cs(1) = '1') then
-					data <= mem_data1;
-				elsif (mem_cs(2) = '1') then
-					data <= mem_data2;
-				elsif (mem_cs(3) = '1') then
-					data <= mem_data3;
-				else
-					data <= (others => 'Z');
-				end if;
-			else
-				data <= (others => 'Z');
-			end if;
-		end if;
-	end process;*/
 
 end rtl;

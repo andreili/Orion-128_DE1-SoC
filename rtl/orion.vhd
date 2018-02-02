@@ -25,8 +25,11 @@ entity orion is
 		--DRAM_UDQM	: out std_logic;
 		--DRAM_WE_N	: out std_logic;
 		
-		GPIO_0		: inout std_logic_vector(35 downto 0);
+		--GPIO_0		: inout std_logic_vector(35 downto 0);
 		--GPIO_1		: inout std_logic_vector(35 downto 0);
+		
+		PS2_CLK		: in  std_logic;
+		PS2_DAT		: in  std_logic;
 		
 		HEX0			: out std_logic_vector(6 downto 0);
 		HEX1			: out std_logic_vector(6 downto 0);
@@ -56,19 +59,10 @@ architecture rtl of orion is
 			outclk_1 : out std_logic         -- clk 100MHz
 		);
 	end component orion_pll;
-	
-	component pll is
-		port (
-			refclk   : in  std_logic := 'X'; -- clk
-			rst      : in  std_logic := 'X'; -- reset
-			outclk_0 : out std_logic         -- clk 148.5MHz
-		);
-	end component pll;
 
 	component orion_video
 		port (
 			clk			: in  std_logic;	-- 25MHz
-			clk_mem		: in  std_logic;
 
 			addr			: in  std_logic_vector(15 downto 0);
 			data			: inout std_logic_vector(7 downto 0);
@@ -103,6 +97,7 @@ architecture rtl of orion is
 			rd				: out std_logic;
 			wr				: out std_logic;
 			dsyn			: out std_logic;
+			reset			: out std_logic;
 
 			video_bank	: out std_logic_vector(1 downto 0);
 			video_mode	: out std_logic_vector(2 downto 0);
@@ -111,6 +106,21 @@ architecture rtl of orion is
 			reset_btn	: in  std_logic;
 			ready			: in  std_logic;
 			vframe_end	: in  std_logic
+		);
+	end component;
+
+	component orion_pio
+		port (
+			clk			: in  std_logic;
+			reset			: in  std_logic;
+			addr			: in  std_logic_vector(15 downto 0);
+			data			: inout std_logic_vector(7 downto 0);
+			rd				: in  std_logic;
+			wr				: in  std_logic;
+			ports_cs		: in  std_logic_vector(3 downto 0);
+			ps2_clk		: in  std_logic;
+			ps2_data		: in  std_logic;
+			reset_btn	: out std_logic
 		);
 	end component;
 
@@ -135,9 +145,7 @@ architecture rtl of orion is
 --------------------------------------------------------------------------------
 signal clk_50MHz			: std_logic;	-- сигнал с генератора, только для PLL!!!
 signal clk_10MHz			: std_logic;
-signal clk_low				: std_logic;
 signal clk_25MHz			: std_logic;
-signal clk_148_5MHz		: std_logic;
 
 signal debounced			: std_logic_vector(13 downto 0);
 signal KEY_debounced		: std_logic_vector(3 downto 0);
@@ -160,6 +168,7 @@ signal mem_we				: std_logic_vector( 3 downto 0);
 signal rd					: std_logic;
 signal wr					: std_logic;
 signal dsyn					: std_logic;
+signal reset				: std_logic;
 signal video_bank			: std_logic_vector( 1 downto 0);
 signal video_mode			: std_logic_vector( 2 downto 0);
 signal vframe_end			: std_logic;
@@ -170,7 +179,6 @@ begin
 --                       СВЯЗЬ СИГНАЛОВ С ПИНАМИ МС                           --
 --------------------------------------------------------------------------------
 clk_50MHz <= CLOCK_50;
-or_reset_btn <= KEY_debounced(0);
 LEDR(0) <= '0';
 LEDR(1) <= '0';
 LEDR(2) <= '0';
@@ -200,14 +208,6 @@ pll_orion: orion_pll
 		clk_25MHz
 	);
 
--- PLL для видеовыхода
-pll_vga: pll
-	port map (
-		clk_50MHz,
-		'0',
-		clk_148_5MHz
-	);
-
 -- фильтр дребезга контактов
 deb: debounce
 	port map (
@@ -222,7 +222,6 @@ SW_debounced  <= debounced(9 downto 0);
 video: orion_video
 	port map (
 		clk_25MHz,
-		clk_148_5MHz,
 		addr,
 		data,
 		mem_we,
@@ -252,12 +251,27 @@ cpu: orion_cpu
 		rd,
 		wr,
 		dsyn,
+		reset,
 		video_bank,
 		video_mode,
 		ports_cs,
-		or_reset_btn,
+		or_reset_btn or KEY_debounced(0),
 		or_ready,
 		vframe_end
+	);
+
+pio: orion_pio
+	port map (
+		clk_25MHz,
+		not KEY_debounced(1),
+		addr,
+		data,
+		rd,
+		wr,
+		ports_cs,
+		PS2_CLK,
+		PS2_DAT,
+		or_reset_btn
 	);
 
 end rtl;
