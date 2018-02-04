@@ -73,6 +73,7 @@ architecture rtl of orion is
 			video_bank	: in  std_logic_vector(1 downto 0);
 			video_mode	: in  std_logic_vector(2 downto 0);
 			h480en		: in  std_logic;
+			wide_scr_en	: in  std_logic;
 
 			vframe_end	: out std_logic;
 
@@ -230,6 +231,7 @@ video: orion_video
 		video_bank,
 		video_mode,
 		SW_debounced(9),
+		SW_debounced(8),
 		vframe_end,
 		VGA_R,
 		VGA_G,

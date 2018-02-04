@@ -17,6 +17,7 @@ entity orion_video is
 		video_bank	: in  std_logic_vector(1 downto 0);
 		video_mode	: in  std_logic_vector(2 downto 0);
 		h480en		: in  std_logic;
+		wide_scr_en	: in  std_logic;
 
 		vframe_end	: out std_logic;
 
@@ -31,6 +32,12 @@ entity orion_video is
 end entity;
 
 architecture rtl of orion_video is
+
+constant H_SYNC_POL_WS	: std_logic := '0';
+constant H_SYNC_POL		: std_logic := '1';
+constant V_SYNC_POL		: std_logic := '0';
+
+signal	h_sync_pol_sig	: std_logic;
 
 signal R						: std_logic;
 signal G						: std_logic;
@@ -144,7 +151,7 @@ begin
 	begin
 		if (rising_edge(clk)) then
 			if (((h_cnt = 10D"671") and (h480en = '0')) or ((h_cnt = 10D"719") and (h480en = '1'))) then
-				if (v_cnt = 10D"448") then
+				if ((v_cnt = 10D"448") and (wide_scr_en='1')) or ((v_cnt = 10D"524") and (wide_scr_en='0')) then
 					v_cnt <= (others => '0');
 				else
 					v_cnt <= v_cnt + 1;
@@ -157,6 +164,9 @@ begin
 --                        ФОРМИРОВАНИЕ СИНХРО-СИГНАЛОВ                        --
 --------------------------------------------------------------------------------
 
+h_sync_pol_sig <= H_SYNC_POL_WS when (wide_scr_en='1')
+				 else H_SYNC_POL;
+
 	process (clk)
 	begin
 		if (rising_edge(clk)) then
@@ -168,16 +178,16 @@ begin
 				end if;
 			else
 				if (h_cnt = 10D"575") then
-					h_sync <= '1';
+					h_sync <= h_sync_pol_sig;
 				elsif (h_cnt = 10D"671") then
-					h_sync <= '0';
+					h_sync <= not h_sync_pol_sig;
 				end if;
 			end if;
 
-			if (v_cnt = 10D"339") then
-				v_sync <= '0';
-			elsif (h_cnt = 10D"341") then
-				v_sync <= '1';
+			if ((v_cnt = 10D"339") and (wide_scr_en='1')) or ((v_cnt = 10D"377") and (wide_scr_en='0')) then
+				v_sync <= V_SYNC_POL;
+			elsif ((h_cnt = 10D"341") and (wide_scr_en='1')) or ((v_cnt = 10D"379") and (wide_scr_en='0')) then
+				v_sync <= not V_SYNC_POL;
 			end if;
 		end if;
 	end process;
