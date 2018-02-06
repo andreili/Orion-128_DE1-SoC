@@ -215,8 +215,7 @@ VGA_SYNC_N <= '0';
 	end process;
 
 blank_n <= not (h_blank or v_blank);
---VGA_BLANK_N <= blank_n;
-VGA_BLANK_N <= '1';
+VGA_BLANK_N <= blank_n;
 
 --------------------------------------------------------------------------------
 --                         ФОРМИРОВАНИЕ АДРЕСА ПИКСЕЛЯ                        --
