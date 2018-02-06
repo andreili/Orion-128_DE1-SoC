@@ -131,6 +131,14 @@ signal vdata_to_buf		: std_logic;
 signal blank_n				: std_logic;
 
 signal h_cnt_reset		: std_logic;
+
+signal h_sync_3_start	: std_logic;
+signal h_sync_4_start	: std_logic;
+signal h_sync_start		: std_logic;
+signal h_sync_end_mid	: std_logic;
+signal h_sync_3_end		: std_logic;
+signal h_sync_4_end		: std_logic;
+signal h_sync_end			: std_logic;
 begin
 
 --------------------------------------------------------------------------------
@@ -166,24 +174,29 @@ h_cnt_reset <= h_cnt(9) and h_cnt(8) and h_cnt(5);
 
 h_sync_pol_sig <= H_SYNC_POL_WS when (wide_scr_en='1')
 				 else H_SYNC_POL;
+-- начало горизонтального синхроимпульса
+h_sync_4_start		<= h_cnt(9) and h_cnt(6) and (not h_cnt(7)) and h480en;
+h_sync_3_start		<= h_cnt(9) and h_cnt(4) and (h_cnt(7) nor h_cnt(8)) and (not h480en);
+h_sync_start		<= h_sync_3_start or h_sync_4_start;
+
+-- конец горизонтального синхроимпульса
+h_sync_end_mid		<= h_cnt(9) and h_cnt(5);
+h_sync_4_end		<= h_sync_end_mid and h_cnt(7) and h480en;
+h_sync_3_end		<= h_sync_end_mid and h_cnt(6) and h_cnt(4) and (not h480en);
+h_sync_end			<= h_sync_3_end or h_sync_4_end;
+
+	process (h_sync_3_start, h_sync_3_end)
+	begin
+		if (h_sync_end = '1') then
+			h_sync <= not h_sync_pol_sig;
+		elsif (h_sync_start = '1') then
+			h_sync <= h_sync_pol_sig;
+		end if;
+	end process;
 
 	process (clk)
 	begin
 		if (rising_edge(clk)) then
-			if (h480en = '0') then
-				if (h_cnt = 10D"527") then
-					h_sync <= '1';
-				elsif (h_cnt = 10D"623") then
-					h_sync <= '0';
-				end if;
-			else
-				if (h_cnt = 10D"575") then
-					h_sync <= h_sync_pol_sig;
-				elsif (h_cnt = 10D"671") then
-					h_sync <= not h_sync_pol_sig;
-				end if;
-			end if;
-
 			if ((v_cnt = 10D"339") and (wide_scr_en='1')) or ((v_cnt = 10D"377") and (wide_scr_en='0')) then
 				v_sync <= V_SYNC_POL;
 			elsif ((h_cnt = 10D"341") and (wide_scr_en='1')) or ((v_cnt = 10D"379") and (wide_scr_en='0')) then
