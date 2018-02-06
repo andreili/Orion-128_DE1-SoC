@@ -263,23 +263,20 @@ pxl: orion_pxl_conv
 	process (clk)
 	begin
 		if (rising_edge(clk)) then
-			if (vdata_to_buf = '1') then
-				if (video_mode(2) = '0') then
-					-- monochrome - reset
-					vdata_buf(15 downto 8) <= 8D"0";
-				else
+			if (video_mode(2) = '0') then
+				-- monochrome - reset
+				vdata_buf(15 downto 8) <= 8D"0";
+			else
+				if (vdata_to_buf = '1') then
 					-- colors modes
 					vdata_buf(15 downto 8) <= vdata(15 downto 8);
-				end if;
-			else
-				if (video_mode(2) = '0') then
-					-- monochrome - reset
-					vdata_buf(15 downto 8) <= 8D"0";
-				elsif (video_mode(1) = '0') then
-					-- 4 color mode - shift to right
-					vdata_buf(15 downto 8) <= vdata_buf(14 downto 8) & '0';
-				else 
-					-- 16 colors mode - not changed
+				else
+					if (video_mode(1) = '0') then
+						-- 4 color mode - shift to right
+						vdata_buf(15 downto 8) <= vdata_buf(14 downto 8) & '0';
+					else 
+						-- 16 colors mode - not changed
+					end if;
 				end if;
 			end if;
 		end if;
