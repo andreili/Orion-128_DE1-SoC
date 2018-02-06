@@ -130,20 +130,20 @@ signal mem_data3			: std_logic_vector(7 downto 0);
 signal vdata_to_buf		: std_logic;
 signal blank_n				: std_logic;
 
+signal h_cnt_reset		: std_logic;
 begin
 
 --------------------------------------------------------------------------------
 --                       СЧЁТЧИКИ ПИКСЕЛЕЙ И СТРОК                            --
 --------------------------------------------------------------------------------
 
-	process (clk)
+h_cnt_reset <= h_cnt(9) and h_cnt(8) and h_cnt(5);
+	process (h_cnt_reset, clk)
 	begin
-		if (rising_edge(clk)) then
-			if (h_cnt = 10D"799") then
-				h_cnt <= (others => '0');
-			else
-				h_cnt <= h_cnt + '1';
-			end if;
+		if (h_cnt_reset = '1') then
+			h_cnt <= (others => '0');
+		elsif (rising_edge(clk)) then
+			h_cnt <= h_cnt + '1';
 		end if;
 	end process;
 
