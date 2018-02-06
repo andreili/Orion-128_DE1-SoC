@@ -112,7 +112,7 @@ signal v_blank				: std_logic;
 signal h_sync				: std_logic;
 signal v_sync				: std_logic;
 
-signal vram_col			: std_logic_vector( 8 downto 0);
+signal vram_col			: std_logic_vector( 5 downto 0);
 signal vram_row			: std_logic_vector( 7 downto 0);
 signal vaddr				: std_logic_vector(15 downto 0);
 signal vdata				: std_logic_vector(15 downto 0);
@@ -222,15 +222,15 @@ VGA_BLANK_N <= '1';
 --                         ФОРМИРОВАНИЕ АДРЕСА ПИКСЕЛЯ                        --
 --------------------------------------------------------------------------------
 
-vram_col <= h_cnt(8 downto 0);
+vram_col <= h_cnt(8 downto 3);
 vram_row <= v_cnt(7 downto 0);
-vaddr <= video_bank & vram_col(8 downto 3) & vram_row;
+vaddr <= video_bank & vram_col & vram_row;
 
 --------------------------------------------------------------------------------
 --                       ПРЕОБРАЗОВАНИЕ ТЕКУЩЕГО ПИКСЕЛЯ                      --
 --------------------------------------------------------------------------------
 
-vdata_to_buf <= (vram_col(2)) and (vram_col(1)) and (vram_col(0));
+vdata_to_buf <= (h_cnt(2)) and (h_cnt(1)) and (h_cnt(0));
 
 pxl: orion_pxl_conv
 	port map (
