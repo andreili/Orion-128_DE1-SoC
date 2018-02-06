@@ -90,6 +90,7 @@ architecture rtl of orion_cpu is
 		);
 	end component;
 
+signal clk_F				: std_logic;
 signal clk_F1				: std_logic;
 signal clk_F2				: std_logic;
 
@@ -129,12 +130,17 @@ cpu_wr <= not cpu_wr_n;
 --                    ФОРМИРОВАНИЕ ТАКТОВЫХ СИГНАЛОВ                          --
 --------------------------------------------------------------------------------
 
-clk_F1 <= (cnt_clk(1) and cnt_clk(2));
-clk_F2 <= (not cnt_clk(2));
+clk_F		<= (not cnt_clk(1)) and (not cnt_clk(2));
+clk_F1	<= clk_F and (not cnt_clk(0));
+clk_F2	<= clk_F and cnt_clk(0);
 	process (clk)
 	begin
 		if (rising_edge(clk)) then
-			cnt_clk <= cnt_clk + '1';
+			if (cnt_clk = 3D"5") then
+				cnt_clk <= (others => '0');
+			else
+				cnt_clk <= cnt_clk + '1';
+			end if;
 		end if;
 	end process;
 
