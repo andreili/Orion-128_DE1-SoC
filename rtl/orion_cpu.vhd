@@ -136,7 +136,7 @@ clk_F2	<= clk_F and cnt_clk(0);
 	process (clk)
 	begin
 		if (rising_edge(clk)) then
-			if (cnt_clk = 3D"5") then
+			if (cnt_clk = 3D"4") then
 				cnt_clk <= (others => '0');
 			else
 				cnt_clk <= cnt_clk + '1';
