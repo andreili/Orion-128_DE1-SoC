@@ -7,12 +7,20 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 entity orion_video is
 	port (
 		clk			: in  std_logic;	-- 25MHz
+		clk_mem		: in  std_logic;
+		clk_div		: in  std_logic_vector(1 downto 0);	-- 0-2.5 1-5 2-10 3-10
+
+		clk_F1		: out std_logic;
+		clk_F2		: out std_logic;
+		cas			: out std_logic;
 
 		addr			: in  std_logic_vector(15 downto 0);
 		data			: inout std_logic_vector(7 downto 0);
 		mem_we		: in  std_logic_vector( 3 downto 0);
 		mem_cs		: in  std_logic_vector( 3 downto 0);
 		rd				: in  std_logic;
+		wr				: in  std_logic;
+		dsyn			: in  std_logic;
 
 		video_bank	: in  std_logic_vector(1 downto 0);
 		video_mode	: in  std_logic_vector(2 downto 0);
@@ -75,24 +83,6 @@ signal I						: std_logic;
 			I			: out std_logic
 		);
 	end component;
-	
-	component ram_dualp
-		port
-		(
-			address_a	: in  std_logic_vector(15 downto 0);
-			address_b	: in  std_logic_vector(15 downto 0);
-			clock_a		: in  std_logic;
-			clock_b		: in  std_logic;
-			data_a		: in  std_logic_vector(7 downto 0);
-			data_b		: in  std_logic_vector(7 downto 0);
-			rden_a		: in  std_logic;
-			rden_b		: in  std_logic;
-			wren_a		: in  std_logic;
-			wren_b		: in  std_logic;
-			q_a			: out std_logic_vector(7 downto 0);
-			q_b			: out std_logic_vector(7 downto 0)
-		);
-	end component;
 
 	component ram_base
 		port
@@ -139,7 +129,108 @@ signal h_sync_end_mid	: std_logic;
 signal h_sync_3_end		: std_logic;
 signal h_sync_4_end		: std_logic;
 signal h_sync_end			: std_logic;
+
+signal cnt_clk				: std_logic_vector(3 downto 0);
+signal cnt_res_2			: std_logic;
+signal cnt_res_5			: std_logic;
+signal cnt_res				: std_logic;
+signal clk_F				: std_logic;
+signal F1_2					: std_logic;
+signal F1_10				: std_logic;
+signal F1					: std_logic;
+signal F2_2					: std_logic;
+signal F2_10				: std_logic;
+signal F2					: std_logic;
+signal cas_2				: std_logic;
+signal cas_5				: std_logic;
+signal cas_10				: std_logic;
+
+signal mem_addr			: std_logic_vector(15 downto 0);
+signal mem_acc_video		: std_logic;
+signal mem_to_vbuf		: std_logic;
+signal dsyn_delayed		: std_logic;
+
 begin
+
+--------------------------------------------------------------------------------
+--                    ФОРМИРОВАНИЕ ТАКТОВЫХ СИГНАЛОВ                          --
+--------------------------------------------------------------------------------
+
+-- селектор тактовой частоты
+cnt_res_2	<= cnt_clk(3) and (not cnt_clk(2)) and cnt_clk(1) and (not cnt_clk(0));
+cnt_res_5	<= cnt_clk(2) and (not cnt_clk(1)) and cnt_clk(0);
+with clk_div select cnt_res <=
+	cnt_res_2 when "00",
+	cnt_res_5 when "01",
+	cnt_res_5 when "10",
+	cnt_res_5 when "11";
+
+cas_2		<= cnt_clk(3) and (not cnt_clk(1));
+cas_5		<= cnt_clk(1) and cnt_clk(0);
+cas_10	<= cnt_clk(1);
+with clk_div select cas <=
+	cas_2  when "00",
+	cas_5  when "01",
+	cas_10 when "10",
+	cas_10 when "11";
+
+clk_F	<= not (cnt_clk(3) or cnt_clk(2));
+-- 2.5MHz, 5MHz
+F1_2	<= clk_F and (not (cnt_clk(1) or cnt_clk(0)));
+F2_2	<= clk_F and (not cnt_clk(1)) and cnt_clk(0);
+-- 10MHz
+F1_10	<= clk_F and (not cnt_clk(0)) and clk;
+F2_10	<= clk_F and (not (cnt_clk(0) or clk));
+
+with clk_div select F1 <=
+	F1_2  when "00",
+	F1_2  when "01",
+	F1_10 when "10",
+	F1_10 when "11";
+
+with clk_div select F2 <=
+	F2_2  when "00",
+	F2_2  when "01",
+	F2_10 when "10",
+	F2_10 when "11";
+
+	process(cnt_res, clk)
+	begin
+		if (cnt_res = '1') then
+			cnt_clk <= (others => '0');
+		elsif (rising_edge(clk)) then
+			cnt_clk <= cnt_clk + '1';
+		end if;
+	end process;
+clk_F1 <= F1;
+clk_F2 <= F2;
+
+--------------------------------------------------------------------------------
+--                        АРБИТРАЖ ДОСТУПА К ПАМЯТИ                           --
+--------------------------------------------------------------------------------
+
+	process (F2)
+	begin
+		if (rising_edge(F2)) then
+			dsyn_delayed <= dsyn;
+		end if;
+	end process;
+
+	process (dsyn, clk)
+	begin
+		if (dsyn = '1') then
+			mem_to_vbuf <= '0';
+		elsif (rising_edge(clk)) then
+			mem_to_vbuf <= h_cnt(0);
+		end if;
+	end process;
+
+	process (mem_to_vbuf)
+	begin
+		if (falling_edge(mem_to_vbuf)) then
+			vdata <= mem_data1 & mem_data0;
+		end if;
+	end process;
 
 --------------------------------------------------------------------------------
 --                       СЧЁТЧИКИ ПИКСЕЛЕЙ И СТРОК                            --
@@ -324,49 +415,31 @@ VGA_B(5) <= B;
 VGA_B(6) <= B and I;
 VGA_B(7)	<= B;
 
--- port A - CPU
--- port B - GPU
-ram0: ram_dualp
+ram0: ram_base
 	port map
 	(
-		addr,
-		vaddr,
-		clk,
-		clk,
-		wdata0,
-		8D"0",	-- video - RO
-		'1',		-- RE
-		'1',		-- RE
+		mem_addr,
+		clk_mem,
+		wdata2,
 		mem_we(0),
-		'0',		-- video - RO
-		mem_data0,
-		vdata(7 downto 0)
+		mem_data0
 	);
 
--- port A - CPU
--- port B - GPU
-ram1: ram_dualp
+ram1: ram_base
 	port map
 	(
-		addr,
-		vaddr,
-		clk,
-		clk,
-		wdata1,
-		8D"0",	-- video - RO
-		'1',		-- RE
-		'1',		-- RE
+		mem_addr,
+		clk_mem,
+		wdata2,
 		mem_we(1),
-		'0',		-- video - RO
-		mem_data1,
-		vdata(15 downto 8)
+		mem_data1
 	);
 
 ram2: ram_base
 	port map
 	(
-		addr,
-		clk,
+		mem_addr,
+		clk_mem,
 		wdata2,
 		mem_we(2),
 		mem_data2
@@ -375,21 +448,24 @@ ram2: ram_base
 ram3: ram_base
 	port map
 	(
-		addr,
-		clk,
+		mem_addr,
+		clk_mem,
 		wdata3,
 		mem_we(3),
 		mem_data3
 	);
+
+mem_addr <= vaddr when (dsyn = '0')
+				else addr;
 
 wdata0 <= data;
 wdata1 <= data;
 wdata2 <= data;
 wdata3 <= data;
 
-	process (rd, mem_cs)
+	process (dsyn)
 	begin
-		if (rd = '1') then
+		if ((dsyn = '1') and (rd = '1')) then
 			case mem_cs is
 				when "0001" => 	data <= mem_data0;
 				when "0010" => 	data <= mem_data1;

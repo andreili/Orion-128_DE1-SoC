@@ -7,6 +7,9 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 entity orion_cpu is
 	port (
 		clk			: in  std_logic;	-- 25MHz
+		clk_F1		: in  std_logic;
+		clk_F2		: in  std_logic;
+		cas			: in  std_logic;
 
 		addr			: out std_logic_vector(15 downto 0);
 		data			: inout std_logic_vector(7 downto 0);
@@ -53,7 +56,9 @@ architecture rtl of orion_cpu is
 	component orion_ports
 		port (
 			clk			: in  std_logic;
+			clk_F1		: in  std_logic;
 			clk_F2		: in  std_logic;
+			cas			: in  std_logic;
 
 			reset_btn	: in  std_logic;
 			ready			: in  std_logic;
@@ -90,10 +95,6 @@ architecture rtl of orion_cpu is
 		);
 	end component;
 
-signal clk_F				: std_logic;
-signal clk_F1				: std_logic;
-signal clk_F2				: std_logic;
-
 signal reset_inner		: std_logic;
 signal cpu_addr			: std_logic_vector(15 downto 0);
 signal cpu_ready			: std_logic;
@@ -113,8 +114,6 @@ signal CSROM				: std_logic;
 signal rom_re				: std_logic;
 signal rom_data			: std_logic_vector(7 downto 0);
 
-signal cnt_clk				: std_logic_vector(2 downto 0);
-
 begin
 
 wr <= cpu_wr;
@@ -125,24 +124,6 @@ reset <= reset_inner;
 cpu_int <= not cpu_int_n;
 cpu_inte_n <= not cpu_inte;
 cpu_wr <= not cpu_wr_n;
-
---------------------------------------------------------------------------------
---                    ФОРМИРОВАНИЕ ТАКТОВЫХ СИГНАЛОВ                          --
---------------------------------------------------------------------------------
-
-clk_F		<= (not cnt_clk(1)) and (not cnt_clk(2));
-clk_F1	<= clk_F and (not cnt_clk(0));
-clk_F2	<= clk_F and cnt_clk(0);
-	process (clk)
-	begin
-		if (rising_edge(clk)) then
-			if (cnt_clk = 3D"4") then
-				cnt_clk <= (others => '0');
-			else
-				cnt_clk <= cnt_clk + '1';
-			end if;
-		end if;
-	end process;
 
 cpu: vm80a
 	port map (
@@ -165,7 +146,9 @@ cpu: vm80a
 ports: orion_ports
 	port map (
 		clk,
+		clk_F1,
 		clk_F2,
+		cas,
 		reset_btn,
 		ready,
 		cpu_sync_ex,

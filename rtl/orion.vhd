@@ -55,7 +55,7 @@ architecture rtl of orion is
 		port (
 			refclk   : in  std_logic := 'X'; -- clk
 			rst      : in  std_logic := 'X'; -- reset
-			outclk_0 : out std_logic;        -- clk 10MHz
+			outclk_0 : out std_logic;        -- clk 25MHz
 			outclk_1 : out std_logic         -- clk 100MHz
 		);
 	end component orion_pll;
@@ -63,12 +63,20 @@ architecture rtl of orion is
 	component orion_video
 		port (
 			clk			: in  std_logic;	-- 25MHz
+			clk_mem		: in  std_logic;
+			clk_div		: in  std_logic_vector(1 downto 0);
+
+			clk_F1		: out std_logic;
+			clk_F2		: out std_logic;
+			cas			: out std_logic;
 
 			addr			: in  std_logic_vector(15 downto 0);
 			data			: inout std_logic_vector(7 downto 0);
 			mem_we		: in  std_logic_vector( 3 downto 0);
 			mem_cs		: in  std_logic_vector( 3 downto 0);
 			rd				: in  std_logic;
+			wr				: in  std_logic;
+			dsyn			: in  std_logic;
 
 			video_bank	: in  std_logic_vector(1 downto 0);
 			video_mode	: in  std_logic_vector(2 downto 0);
@@ -90,6 +98,9 @@ architecture rtl of orion is
 	component orion_cpu
 		port (
 			clk			: in  std_logic;	-- 25MHz
+			clk_F1		: in  std_logic;
+			clk_F2		: in  std_logic;
+			cas			: in  std_logic;
 
 			addr			: out std_logic_vector(15 downto 0);
 			data			: inout std_logic_vector(7 downto 0);
@@ -145,7 +156,7 @@ architecture rtl of orion is
 --                          ГЛОБАЛЬНЫЕ СИГНАЛЫ                                --
 --------------------------------------------------------------------------------
 signal clk_50MHz			: std_logic;	-- сигнал с генератора, только для PLL!!!
-signal clk_10MHz			: std_logic;
+signal clk_100MHz			: std_logic;
 signal clk_25MHz			: std_logic;
 
 signal debounced			: std_logic_vector(13 downto 0);
@@ -162,6 +173,9 @@ signal or_ready			: std_logic := '1';
 --                       ВНУТРЕННИЕ СИГНАЛЫ ОРИОНА                            --
 --------------------------------------------------------------------------------
 
+signal F1					: std_logic;
+signal F2					: std_logic;
+signal cas					: std_logic;
 signal addr					: std_logic_vector(15 downto 0);
 signal data					: std_logic_vector( 7 downto 0);
 signal mem_cs				: std_logic_vector( 3 downto 0);
@@ -205,14 +219,14 @@ pll_orion: orion_pll
 	port map (
 		clk_50MHz,
 		'0',
-		clk_10MHz,
+		clk_100MHz,
 		clk_25MHz
 	);
 
 -- фильтр дребезга контактов
 deb: debounce
 	port map (
-		clk_10MHz,
+		clk_100MHz,
 		'1',
 		KEY & SW,
 		debounced
@@ -223,11 +237,18 @@ SW_debounced  <= debounced(9 downto 0);
 video: orion_video
 	port map (
 		clk_25MHz,
+		clk_100MHz,
+		SW_debounced(1 downto 0),
+		F1,
+		F2,
+		cas,
 		addr,
 		data,
 		mem_we,
 		mem_cs,
 		rd,
+		wr,
+		dsyn,
 		video_bank,
 		video_mode,
 		SW_debounced(9),
@@ -245,7 +266,10 @@ VGA_CLK <= clk_50MHz;
 
 cpu: orion_cpu
 	port map (
-		clk_25MHz,
+		clk_100MHz,
+		F1,
+		F2,
+		cas,
 		addr,
 		data,
 		mem_we,
@@ -264,7 +288,7 @@ cpu: orion_cpu
 
 pio: orion_pio
 	port map (
-		clk_25MHz,
+		clk_100MHz,
 		not KEY_debounced(1),
 		addr,
 		data,

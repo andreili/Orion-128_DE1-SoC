@@ -7,7 +7,9 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 entity orion_ports is
 	port (
 		clk			: in  std_logic;
+		clk_F1		: in  std_logic;
 		clk_F2		: in  std_logic;
+		cas			: in  std_logic;
 
 		reset_btn	: in  std_logic;
 		ready			: in  std_logic;
@@ -38,7 +40,8 @@ architecture rtl of orion_ports is
 
 signal color_mode			: std_logic_vector(3 downto 0);	-- управление цветом
 
-signal dsyn_tmp			: std_logic;
+signal cpu_mem_req		: std_logic;
+signal dsyn_set			: std_logic;
 
 signal sel_port_F4XX		: std_logic;
 signal sel_port_F8XX		: std_logic;
@@ -86,7 +89,7 @@ CSROM <= addr_F8XX or (not color_mode(3));
 	-- DD18.2
 	process (clk)
 	begin
-		if (falling_edge(clk)) then
+		if (rising_edge(clk)) then
 			if (clk_F2 = '1') then
 				reset <= not reset_btn;
 				cpu_ready <= ready;
@@ -95,15 +98,22 @@ CSROM <= addr_F8XX or (not color_mode(3));
 	end process;
 
 	-- DD13.2
-dsyn <= cpu_rd or cpu_wr;
-	process (clk)
+--dsyn <= (cpu_rd or cpu_wr);-- and (clk_F1 or clk_F2);
+cpu_mem_req <= cpu_rd or cpu_wr;
+--dsyn_set		<= cpu_mem_req and cas;
+	process (cas, cpu_mem_req)
 	begin
-		if (falling_edge(clk)) then
+		if (cpu_mem_req = '0') then
+			dsyn <= '0';
+		elsif (cas = '1') then
+			dsyn <= cpu_mem_req;
+		end if;
+		/*if (falling_edge(clk)) then
 			--dsyn_p <= cpu_rd or cpu_wr;
 			---dsyn_tmp <= cpu_sync;
 			---dsyn_p <= dsyn_tmp;
 			--dsyn_p <= cpu_sync;
-		end if;
+		end if;*/
 	end process;
 
 	-- DD29 - управление банками памяти
