@@ -60,47 +60,40 @@ architecture rtl of orion is
 		);
 	end component orion_pll;
 
-	component orion_video
-		port (
-			clk			: in  std_logic;	-- 25MHz
-			clk_mem		: in  std_logic;
-			clk_div		: in  std_logic_vector(1 downto 0);
-
-			clk_F1		: out std_logic;
-			clk_F2		: out std_logic;
-			cas			: out std_logic;
-
-			addr			: in  std_logic_vector(15 downto 0);
-			data			: inout std_logic_vector(7 downto 0);
-			mem_we		: in  std_logic_vector( 3 downto 0);
-			mem_cs		: in  std_logic_vector( 3 downto 0);
-			rd				: in  std_logic;
-			wr				: in  std_logic;
-			dsyn			: in  std_logic;
-
-			video_bank	: in  std_logic_vector(1 downto 0);
-			video_mode	: in  std_logic_vector(2 downto 0);
-			h480en		: in  std_logic;
-			wide_scr_en	: in  std_logic;
-
-			vframe_end	: out std_logic;
-
-			VGA_R			: out std_logic_vector(7 downto 0);
-			VGA_G			: out std_logic_vector(7 downto 0);
-			VGA_B			: out std_logic_vector(7 downto 0);
-			VGA_HS		: out std_logic;
-			VGA_VS		: out std_logic;
-			VGA_BLANK_N	: out std_logic;
-			VGA_SYNC_N	: out std_logic
+	COMPONENT orion_video_sch
+		PORT
+		(
+			clk			:	 IN STD_LOGIC;
+			clk_mem		:	 IN STD_LOGIC;
+			clk_div		:	 IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+			addr			:	 IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+			mem_we		:	 IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+			mem_cs		:	 IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+			rd				:	 IN STD_LOGIC;
+			wr				:	 IN STD_LOGIC;
+			vbank			:	 IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+			video_mode	:	 IN STD_LOGIC_VECTOR(2 DOWNTO 0);
+			h480en		:	 IN STD_LOGIC;
+			wide_en		:	 IN STD_LOGIC;
+			clk_F1		:	 OUT STD_LOGIC;
+			clk_F2		:	 OUT STD_LOGIC;
+			R				:	 OUT std_logic_vector(7 downto 0);
+			G				:	 OUT std_logic_vector(7 downto 0);
+			B				:	 OUT std_logic_vector(7 downto 0);
+			HS				:	 OUT STD_LOGIC;
+			VS				:	 OUT STD_LOGIC;
+			blank_n		:	 OUT STD_LOGIC;
+			dsyn			:	 OUT STD_LOGIC;
+			data			:	 INOUT STD_LOGIC_VECTOR(7 DOWNTO 0)
 		);
-	end component;
+	END COMPONENT;
 
 	component orion_cpu
 		port (
 			clk			: in  std_logic;	-- 25MHz
 			clk_F1		: in  std_logic;
 			clk_F2		: in  std_logic;
-			cas			: in  std_logic;
+			dsyn			: in  std_logic;
 
 			addr			: out std_logic_vector(15 downto 0);
 			data			: inout std_logic_vector(7 downto 0);
@@ -108,7 +101,6 @@ architecture rtl of orion is
 			mem_cs		: out std_logic_vector(3 downto 0);
 			rd				: out std_logic;
 			wr				: out std_logic;
-			dsyn			: out std_logic;
 			reset			: out std_logic;
 
 			video_bank	: out std_logic_vector(1 downto 0);
@@ -234,49 +226,46 @@ deb: debounce
 KEY_debounced <= debounced(13 downto 10);
 SW_debounced  <= debounced(9 downto 0);
 
-video: orion_video
+video: orion_video_sch
 	port map (
-		clk_25MHz,
-		clk_100MHz,
-		SW_debounced(1 downto 0),
-		F1,
-		F2,
-		cas,
-		addr,
-		data,
-		mem_we,
-		mem_cs,
-		rd,
-		wr,
-		dsyn,
-		video_bank,
-		video_mode,
-		SW_debounced(9),
-		SW_debounced(8),
-		vframe_end,
-		VGA_R,
-		VGA_G,
-		VGA_B,
-		VGA_HS,
-		VGA_VS,
-		VGA_BLANK_N,
-		VGA_SYNC_N
+		clk		=> clk_25MHz,
+		clk_mem	=>	clk_100MHz,
+		clk_div	=>	SW_debounced(1 downto 0),
+		addr		=> addr,
+		mem_we	=> mem_we,
+		mem_cs	=> mem_cs,
+		rd			=> rd,
+		wr			=> wr,
+		vbank		=> video_bank,
+		video_mode=> video_mode,
+		h480en	=> SW_debounced(9),
+		wide_en	=> SW_debounced(8),
+		clk_F1	=> F1,
+		clk_F2	=> F2,
+		data		=> data,
+		R			=> VGA_R,
+		G			=> VGA_G,
+		B			=> VGA_B,
+		HS			=> VGA_HS,
+		VS			=> VGA_VS,
+		dsyn		=> dsyn,
+		blank_n	=> VGA_BLANK_N
 	);
 VGA_CLK <= clk_50MHz;
+VGA_SYNC_N <= '0';
 
 cpu: orion_cpu
 	port map (
 		clk_100MHz,
 		F1,
 		F2,
-		cas,
+		dsyn,
 		addr,
 		data,
 		mem_we,
 		mem_cs,
 		rd,
 		wr,
-		dsyn,
 		reset,
 		video_bank,
 		video_mode,

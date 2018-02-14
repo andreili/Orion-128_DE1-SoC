@@ -9,7 +9,7 @@ entity orion_cpu is
 		clk			: in  std_logic;	-- 25MHz
 		clk_F1		: in  std_logic;
 		clk_F2		: in  std_logic;
-		cas			: in  std_logic;
+		dsyn			: in  std_logic;
 
 		addr			: out std_logic_vector(15 downto 0);
 		data			: inout std_logic_vector(7 downto 0);
@@ -17,7 +17,6 @@ entity orion_cpu is
 		mem_cs		: out std_logic_vector(3 downto 0);
 		rd				: out std_logic;
 		wr				: out std_logic;
-		dsyn			: out std_logic;
 		reset			: out std_logic;
 
 		video_bank	: out std_logic_vector(1 downto 0);
@@ -58,7 +57,7 @@ architecture rtl of orion_cpu is
 			clk			: in  std_logic;
 			clk_F1		: in  std_logic;
 			clk_F2		: in  std_logic;
-			cas			: in  std_logic;
+			dsyn			: in  std_logic;
 
 			reset_btn	: in  std_logic;
 			ready			: in  std_logic;
@@ -71,7 +70,6 @@ architecture rtl of orion_cpu is
 			data			: in  std_logic_vector(7 downto 0);
 
 			reset			: out std_logic;
-			dsyn			: out std_logic;
 			CSROM			: out std_logic;
 			cpu_ready	: out std_logic;
 
@@ -148,7 +146,7 @@ ports: orion_ports
 		clk,
 		clk_F1,
 		clk_F2,
-		cas,
+		dsyn,
 		reset_btn,
 		ready,
 		cpu_sync_ex,
@@ -158,7 +156,6 @@ ports: orion_ports
 		cpu_addr,
 		data,
 		reset_inner,
-		dsyn,
 		CSROM,
 		cpu_ready,
 		mem_cs,

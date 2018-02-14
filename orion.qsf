@@ -1003,22 +1003,17 @@ set_global_assignment -name SIGNALTAP_FILE stp1.stp
 set_global_assignment -name VERILOG_FILE rtl/vm80a.v
 set_global_assignment -name VERILOG_FILE rtl/debounce.v
 set_global_assignment -name VHDL_FILE rtl/orion.vhd
-set_global_assignment -name VHDL_FILE rtl/hex_led.vhd
-set_global_assignment -name VHDL_FILE rtl/vga.vhd
 set_global_assignment -name QIP_FILE ram_base/ram_base.qip
 set_global_assignment -name QIP_FILE pll/orion_pll.qip
 set_global_assignment -name SDC_FILE orion_timing.sdc
 set_global_assignment -name QIP_FILE rom_base/rom_base.qip
 set_global_assignment -name VERILOG_FILE sdram_controller.v
-set_global_assignment -name QIP_FILE ram_vga/ram_vga.qip
 set_global_assignment -name CDF_FILE Chain1.cdf
-set_global_assignment -name VHDL_FILE rtl/orion_video.vhd
 set_global_assignment -name VHDL_FILE rtl/orion_ports.vhd
-set_global_assignment -name VHDL_FILE rtl/orion_pxl_conv.vhd
 set_global_assignment -name VHDL_FILE rtl/orion_periph.vhd
-set_global_assignment -name QIP_FILE ram_base/ram_dualp.qip
 set_global_assignment -name VHDL_FILE rtl/orion_cpu.vhd
 set_global_assignment -name VHDL_FILE rtl/i8255.vhd
 set_global_assignment -name VHDL_FILE rtl/orion_pio.vhd
 set_global_assignment -name QIP_FILE rom_disk/rom_disk.qip
+set_global_assignment -name BDF_FILE rtl/orion_video_sch.bdf
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
