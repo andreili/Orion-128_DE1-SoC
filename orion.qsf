@@ -996,6 +996,12 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 # end ENTITY(pll_0002)
 # --------------------
 set_global_assignment -name IP_SEARCH_PATHS "d:\\projects\\fpga\\orion\\ip"
+set_global_assignment -name VHDL_FILE rtl/T80/T80s.vhd
+set_global_assignment -name VHDL_FILE rtl/T80/T80_Reg.vhd
+set_global_assignment -name VHDL_FILE rtl/T80/T80_Pack.vhd
+set_global_assignment -name VHDL_FILE rtl/T80/T80_MCode.vhd
+set_global_assignment -name VHDL_FILE rtl/T80/T80_ALU.vhd
+set_global_assignment -name VHDL_FILE rtl/T80/T80.vhd
 set_global_assignment -name VHDL_FILE rtl/orion_debug.vhd
 set_global_assignment -name VERILOG_FILE rtl/ps2_keyboard.v
 set_global_assignment -name VERILOG_FILE rtl/orionkeyboard.v
