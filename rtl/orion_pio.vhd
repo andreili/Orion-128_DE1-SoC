@@ -11,8 +11,8 @@ entity orion_pio is
 
 		addr			: in  std_logic_vector(15 downto 0);
 		data			: inout std_logic_vector(7 downto 0);
-		rd				: in  std_logic;
-		wr				: in  std_logic;
+		rdn			: in  std_logic;
+		wrn			: in  std_logic;
 		ports_cs		: in  std_logic_vector(3 downto 0);
 		ps2_clk		: in  std_logic;
 		ps2_data		: in  std_logic;
@@ -85,13 +85,13 @@ disk: rom_disk
 
 	process (clk)
 	begin
-		if (rising_edge(clk) and (ports_cs(1) = '1')) then
-			if (rd = '1') then
+		if (rising_edge(clk) and (ports_cs(1) = '0')) then
+			if (rdn = '0') then
 				case addr(1 downto 0) is
 					when "00" =>	data <= rom_data;
 					when others =>	data <= (others => 'Z');
 				end case;
-			elsif (wr = '1') then
+			elsif (wrn = '0') then
 				case addr(1 downto 0) is
 					when "00" =>	NULL;
 					when "01" =>	rom_addr( 7 downto 0) <= data;
@@ -130,14 +130,14 @@ kbd: orionkeyboard
 
 	process (clk)
 	begin
-		if (rising_edge(clk) and (ports_cs(0) = '1')) then
-			if (rd = '1') then
+		if (rising_edge(clk) and (ports_cs(0) = '0')) then
+			if (rdn = '0') then
 				case addr(1 downto 0) is
 					when "01" =>	data <= kb_out;
 					when "10" =>	data <= kb_out_ex(2 downto 0) & "10000";
 					when others =>	data <= (others => 'Z');
 				end case;
-			elsif (wr = '1') then
+			elsif (wrn = '0') then
 				case addr(1 downto 0) is
 					when "00" =>	kb_scan <= data;
 					when others =>	NULL;
