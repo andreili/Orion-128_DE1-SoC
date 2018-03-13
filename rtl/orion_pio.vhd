@@ -16,7 +16,8 @@ entity orion_pio is
 		ports_cs		: in  std_logic_vector(3 downto 0);
 		ps2_clk		: in  std_logic;
 		ps2_data		: in  std_logic;
-		reset_btn	: out std_logic
+		reset_btn	: out std_logic;
+		deb			: out std_logic_vector(15 downto 0)
 	);
 end entity;
 
@@ -31,9 +32,26 @@ architecture rtl of orion_pio is
 			q			: out std_logic_vector(7 downto 0)
 		);
 	end component;
+	
+	component i8255
+		port (
+			clk	: in    std_logic;
+			dbus	: inout std_logic_vector(7 downto 0);
+			addr	: in    std_logic_vector(1 downto 0);
+			rd_n	: in    std_logic;
+			wr_n	: in    std_logic;
+			cs_n	: in    std_logic;
+			res	: in    std_logic;
+			
+			PA		: inout std_logic_vector(7 downto 0);
+			PB		: inout std_logic_vector(7 downto 0);
+			PC		: inout std_logic_vector(7 downto 0)
+		);
+	end component;
 
 signal rom_addr	: std_logic_vector(15 downto 0);
 signal rom_data	: std_logic_vector( 7 downto 0);
+signal rom_data1	: std_logic_vector( 7 downto 0);
 
 	component orionkeyboard
 		port
@@ -63,6 +81,7 @@ signal rom_data	: std_logic_vector( 7 downto 0);
 
 signal kb_scan				: std_logic_vector(7 downto 0);
 signal kb_out				: std_logic_vector(7 downto 0);
+signal kb_out1				: std_logic_vector(7 downto 0);
 signal kb_out_ex			: std_logic_vector(7 downto 0);
 signal turbo_2				: std_logic;							-- unused
 signal turbo_5				: std_logic;							-- unused
@@ -82,27 +101,21 @@ disk: rom_disk
 		'1',
 		rom_data
 	);
+rom_data1 <= rom_data when (rdn='0') else (others => 'Z');
 
-	process (clk)
-	begin
-		if (rising_edge(clk) and (ports_cs(1) = '0')) then
-			if (rdn = '0') then
-				case addr(1 downto 0) is
-					when "00" =>	data <= rom_data;
-					when others =>	data <= (others => 'Z');
-				end case;
-			elsif (wrn = '0') then
-				case addr(1 downto 0) is
-					when "00" =>	NULL;
-					when "01" =>	rom_addr( 7 downto 0) <= data;
-					when "10" =>	rom_addr(15 downto 8) <= data;
-					when "11" =>	NULL;
-				end case;
-			else
-				data <= (others => 'Z');
-			end if;
-		end if;
-	end process;
+port_1: i8255
+	port map (
+		clk,
+		data,
+		addr(1 downto 0),
+		rdn,
+		wrn,
+		ports_cs(1),
+		reset,
+		rom_data1,
+		rom_addr( 7 downto 0),
+		rom_addr(15 downto 8)
+	);
 
 kbd: orionkeyboard
 	port map (
@@ -119,33 +132,32 @@ kbd: orionkeyboard
 		kb_scan,
 		kb_out,
 		prefix,
-		kb_out_ex(2),
-		kb_out_ex(1),
-		kb_out_ex(0),
+		kb_out_ex(7),
+		kb_out_ex(6),
+		kb_out_ex(5),
 		'0',
 		scan_key,
 		int_key,
 		'0'
 	);
 
-	process (clk)
-	begin
-		if (rising_edge(clk) and (ports_cs(0) = '0')) then
-			if (rdn = '0') then
-				case addr(1 downto 0) is
-					when "01" =>	data <= kb_out;
-					when "10" =>	data <= kb_out_ex(2 downto 0) & "10000";
-					when others =>	data <= (others => 'Z');
-				end case;
-			elsif (wrn = '0') then
-				case addr(1 downto 0) is
-					when "00" =>	kb_scan <= data;
-					when others =>	NULL;
-				end case;
-			else
-				data <= (others => 'Z');
-			end if;
-		end if;
-	end process;
+deb(15 downto 8) <= scan_key;
+deb(7 downto 0) <= 8D"0";
+
+kb_out_ex(4 downto 0) <= "10000" when (reset='0') else (others => 'Z');
+kb_out1 <= kb_out when (reset='0') else (others => 'Z');
+port_0: i8255
+	port map (
+		clk,
+		data,
+		addr(1 downto 0),
+		rdn,
+		wrn,
+		ports_cs(0),
+		reset,
+		kb_scan,
+		kb_out1,
+		kb_out_ex
+	);
 
 end rtl;

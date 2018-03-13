@@ -319,7 +319,7 @@ set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "2.5 V"
 
 # SignalTap II Assignments
 # ========================
-set_global_assignment -name ENABLE_SIGNALTAP OFF
+set_global_assignment -name ENABLE_SIGNALTAP ON
 set_global_assignment -name USE_SIGNALTAP_FILE stp1.stp
 
 # Power Estimation Assignments
@@ -996,29 +996,147 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 # end ENTITY(pll_0002)
 # --------------------
 set_global_assignment -name IP_SEARCH_PATHS "d:\\projects\\fpga\\orion\\ip"
-set_global_assignment -name VHDL_FILE rtl/T80/T80s.vhd
-set_global_assignment -name VHDL_FILE rtl/T80/T80_Reg.vhd
-set_global_assignment -name VHDL_FILE rtl/T80/T80_Pack.vhd
-set_global_assignment -name VHDL_FILE rtl/T80/T80_MCode.vhd
-set_global_assignment -name VHDL_FILE rtl/T80/T80_ALU.vhd
-set_global_assignment -name VHDL_FILE rtl/T80/T80.vhd
+set_global_assignment -name SLD_NODE_CREATOR_ID 110 -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_ENTITY_NAME sld_signaltap -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_clk -to "orion_video_sch:video|clk" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[0] -to "orion_video_sch:video|DD4_1" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[2] -to "orion_video_sch:video|pxl1b" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[3] -to "orion_video_sch:video|vdata[0]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[4] -to "orion_video_sch:video|vdata[1]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[5] -to "orion_video_sch:video|vdata[2]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[6] -to "orion_video_sch:video|vdata[3]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[7] -to "orion_video_sch:video|vdata[4]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[8] -to "orion_video_sch:video|vdata[5]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[9] -to "orion_video_sch:video|vdata[6]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[10] -to "orion_video_sch:video|vdata[7]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[11] -to "orion_video_sch:video|x[0]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[12] -to "orion_video_sch:video|x[1]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[13] -to "orion_video_sch:video|x[2]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[14] -to "orion_video_sch:video|x[3]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[15] -to "orion_video_sch:video|x[4]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[16] -to "orion_video_sch:video|x[5]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[17] -to "orion_video_sch:video|x[6]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[18] -to "orion_video_sch:video|x[7]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[19] -to "orion_video_sch:video|x[8]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[20] -to "orion_video_sch:video|x[9]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[0] -to "orion_video_sch:video|DD4_1" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[2] -to "orion_video_sch:video|pxl1b" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[3] -to "orion_video_sch:video|vdata[0]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[4] -to "orion_video_sch:video|vdata[1]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[5] -to "orion_video_sch:video|vdata[2]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[6] -to "orion_video_sch:video|vdata[3]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[7] -to "orion_video_sch:video|vdata[4]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[8] -to "orion_video_sch:video|vdata[5]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[9] -to "orion_video_sch:video|vdata[6]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[10] -to "orion_video_sch:video|vdata[7]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[11] -to "orion_video_sch:video|x[0]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[12] -to "orion_video_sch:video|x[1]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[13] -to "orion_video_sch:video|x[2]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[14] -to "orion_video_sch:video|x[3]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[15] -to "orion_video_sch:video|x[4]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[16] -to "orion_video_sch:video|x[5]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[17] -to "orion_video_sch:video|x[6]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[18] -to "orion_video_sch:video|x[7]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[19] -to "orion_video_sch:video|x[8]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[20] -to "orion_video_sch:video|x[9]" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_RAM_BLOCK_TYPE=AUTO" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_NODE_INFO=805334530" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_POWER_UP_TRIGGER=0" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_STORAGE_QUALIFIER_INVERSION_MASK_LENGTH=0" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ATTRIBUTE_MEM_MODE=OFF" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_STATE_FLOW_USE_GENERATED=0" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_STATE_BITS=11" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_BUFFER_FULL_STOP=1" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_CURRENT_RESOURCE_WIDTH=1" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_INCREMENTAL_ROUTING=1" -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[2] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[3] -to auto_signaltap_2|gnd -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[8] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[10] -to auto_signaltap_2|gnd -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[11] -to auto_signaltap_2|gnd -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[15] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[16] -to auto_signaltap_2|gnd -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[17] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[19] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[23] -to auto_signaltap_2|gnd -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[24] -to auto_signaltap_2|gnd -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[25] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[27] -to auto_signaltap_2|gnd -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[29] -to auto_signaltap_2|gnd -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_LEVEL=1" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_IN_ENABLED=0" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_PIPELINE=0" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_RAM_PIPELINE=0" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_COUNTER_PIPELINE=0" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ADVANCED_TRIGGER_ENTITY=basic,1," -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_LEVEL_PIPELINE=1" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ENABLE_ADVANCED_TRIGGER=0" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[1] -to "orion_video_sch:video|inst48" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[1] -to "orion_video_sch:video|inst48" -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[1] -to auto_signaltap_2|gnd -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[5] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[6] -to auto_signaltap_2|gnd -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[9] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[12] -to auto_signaltap_2|gnd -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[13] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[14] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[21] -to "orion_video_sch:video|y[0]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[22] -to "orion_video_sch:video|y[1]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[23] -to "orion_video_sch:video|y[2]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[24] -to "orion_video_sch:video|y[3]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[25] -to "orion_video_sch:video|y[4]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[26] -to "orion_video_sch:video|y[5]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[27] -to "orion_video_sch:video|y[6]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[28] -to "orion_video_sch:video|y[7]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[29] -to "orion_video_sch:video|y[8]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[30] -to "orion_video_sch:video|y[9]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[21] -to "orion_video_sch:video|y[0]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[22] -to "orion_video_sch:video|y[1]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[23] -to "orion_video_sch:video|y[2]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[24] -to "orion_video_sch:video|y[3]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[25] -to "orion_video_sch:video|y[4]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[26] -to "orion_video_sch:video|y[5]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[27] -to "orion_video_sch:video|y[6]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[28] -to "orion_video_sch:video|y[7]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[29] -to "orion_video_sch:video|y[8]" -section_id auto_signaltap_2
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[30] -to "orion_video_sch:video|y[9]" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_DATA_BITS=31" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_BITS=31" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_STORAGE_QUALIFIER_BITS=31" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_INVERSION_MASK=000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_INVERSION_MASK_LENGTH=120" -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_SEGMENT_SIZE=8192" -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[0] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[4] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[7] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[18] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[20] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[21] -to auto_signaltap_2|gnd -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[22] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[26] -to auto_signaltap_2|vcc -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[28] -to auto_signaltap_2|gnd -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[30] -to auto_signaltap_2|gnd -section_id auto_signaltap_2
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[31] -to auto_signaltap_2|gnd -section_id auto_signaltap_2
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_SAMPLE_DEPTH=8192" -section_id auto_signaltap_2
+set_global_assignment -name VHDL_FILE rtl/i8255.vhd
 set_global_assignment -name VHDL_FILE rtl/orion_debug.vhd
 set_global_assignment -name VERILOG_FILE rtl/ps2_keyboard.v
 set_global_assignment -name VERILOG_FILE rtl/orionkeyboard.v
 set_global_assignment -name SIGNALTAP_FILE stp1.stp
-set_global_assignment -name VERILOG_FILE rtl/vm80a.v
 set_global_assignment -name VERILOG_FILE rtl/debounce.v
 set_global_assignment -name VHDL_FILE rtl/orion.vhd
 set_global_assignment -name QIP_FILE ram_base/ram_base.qip
 set_global_assignment -name QIP_FILE pll/orion_pll.qip
 set_global_assignment -name SDC_FILE orion_timing.sdc
 set_global_assignment -name QIP_FILE rom_base/rom_base.qip
-set_global_assignment -name VERILOG_FILE sdram_controller.v
 set_global_assignment -name CDF_FILE Chain1.cdf
-set_global_assignment -name VHDL_FILE rtl/orion_periph.vhd
-set_global_assignment -name VHDL_FILE rtl/i8255.vhd
 set_global_assignment -name VHDL_FILE rtl/orion_pio.vhd
 set_global_assignment -name QIP_FILE rom_disk/rom_disk.qip
 set_global_assignment -name BDF_FILE rtl/orion_video_sch.bdf
 set_global_assignment -name BDF_FILE rtl/orion_cpu_sch.bdf
+set_global_assignment -name VHDL_FILE rtl/hex_led.vhd
+set_global_assignment -name QIP_FILE rtl/T80/T80.qip
+set_global_assignment -name BDF_FILE rtl/orion_pro_cpu_sch.bdf
+set_global_assignment -name QIP_FILE rom_pro/rom_pro.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_global_assignment -name SLD_FILE db/stp1_auto_stripped.stp

@@ -25,7 +25,7 @@ entity orion is
 		--DRAM_UDQM	: out std_logic;
 		--DRAM_WE_N	: out std_logic;
 		
-		--GPIO_0		: inout std_logic_vector(35 downto 0);
+		GPIO_0		: inout std_logic_vector(35 downto 0);
 		--GPIO_1		: inout std_logic_vector(35 downto 0);
 		
 		PS2_CLK		: in  std_logic;
@@ -67,15 +67,19 @@ architecture rtl of orion is
 			clk			:	 IN STD_LOGIC;
 			clk_mem		:	 IN STD_LOGIC;
 			addr			:	 IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-			MWEn			:	 IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-			MRDn			:	 IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+			MWEn			:	 IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+			MRDn			:	 IN STD_LOGIC_VECTOR(1 DOWNTO 0);
 			rdn			:	 IN STD_LOGIC;
 			wrn			:	 IN STD_LOGIC;
+			mreqn			:	 IN STD_LOGIC;
 			vbank			:	 IN STD_LOGIC_VECTOR(1 DOWNTO 0);
-			video_mode	:	 IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-			h480en		:	 IN STD_LOGIC;
+			video_mode	:	 IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+			SR16			:	 IN STD_LOGIC;
 			wide_en		:	 IN STD_LOGIC;
-			dsyn			:	 IN STD_LOGIC;
+			dsyn_n		:	 IN STD_LOGIC;
+			mem_to_video:	 IN STD_LOGIC;
+			MA				:	 IN STD_LOGIC_VECTOR(19 DOWNTO 14);
+			pFC			:	 IN STD_LOGIC;
 			R				:	 OUT std_logic_vector(7 downto 0);
 			G				:	 OUT std_logic_vector(7 downto 0);
 			B				:	 OUT std_logic_vector(7 downto 0);
@@ -96,15 +100,45 @@ architecture rtl of orion is
 			reset_btn	:	 IN STD_LOGIC;
 			frame_end	:	 IN STD_LOGIC;
 			addr			:	 OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
-			MWEn			:	 OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-			MRDn			:	 OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-			rdn			:	 OUT STD_LOGIC;
-			wrn			:	 OUT STD_LOGIC;
+			MWEn			:	 OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+			MRDn			:	 OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+			zrdn			:	 OUT STD_LOGIC;
+			zwrn			:	 OUT STD_LOGIC;
+			mreqn			:	 OUT STD_LOGIC;
 			vbank			:	 OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-			v_mode		:	 OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
+			v_mode		:	 OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
 			dsyn			:	 OUT STD_LOGIC;
 			reset			:	 OUT STD_LOGIC;
 			PCSn			:	 OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+			mem_to_video:	 OUT STD_LOGIC;
+			data			:	 INOUT STD_LOGIC_VECTOR(7 DOWNTO 0)
+		);
+	END COMPONENT;
+
+	COMPONENT orion_pro_cpu_sch
+		PORT
+		(
+			clk_div		:	 IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+			clk			:	 IN STD_LOGIC;
+			clk_core		:	 IN STD_LOGIC;
+			reset_btn	:	 IN STD_LOGIC;
+			frame_end	:	 IN STD_LOGIC;
+			config		:	 IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+			addr			:	 OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
+			MWEn			:	 OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+			MRDn			:	 OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+			zrdn			:	 OUT STD_LOGIC;
+			zwrn			:	 OUT STD_LOGIC;
+			mreqn			:	 OUT STD_LOGIC;
+			vbank			:	 OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+			v_mode		:	 OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+			dsyn_n		:	 OUT STD_LOGIC;
+			reset			:	 OUT STD_LOGIC;
+			PCSn			:	 OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+			mem_to_video:	 OUT STD_LOGIC;
+			MA				:	 OUT STD_LOGIC_VECTOR(19 DOWNTO 14);
+			pFC			:	 OUT STD_LOGIC;
+			SR16			:	 OUT STD_LOGIC;
 			data			:	 INOUT STD_LOGIC_VECTOR(7 DOWNTO 0)
 		);
 	END COMPONENT;
@@ -120,7 +154,8 @@ architecture rtl of orion is
 			ports_cs		: in  std_logic_vector(3 downto 0);
 			ps2_clk		: in  std_logic;
 			ps2_data		: in  std_logic;
-			reset_btn	: out std_logic
+			reset_btn	: out std_logic;
+			deb			: out std_logic_vector(15 downto 0)
 		);
 	end component;
 
@@ -137,6 +172,28 @@ architecture rtl of orion is
 			reset_n	:	in std_logic;
 			data_in	:	in std_logic_vector(WIDTH-1 downto 0);
 			data_out	:	out std_logic_vector(WIDTH-1 downto 0)
+		);
+	end component;
+	
+	component orion_debug
+		port (
+			clk			: in  std_logic;
+			reset_n		: in  std_logic;
+			addr			: in  std_logic_vector(15 downto 0);
+			data			: in  std_logic_vector(7 downto 0);
+
+			/*step_en		: in  std_logic;
+			step_btn		: in  std_logic;
+			sync_in		: in  std_logic;
+			sync_out		: out std_logic;
+			ready			: out std_logic;*/
+
+			HEX0			: out std_logic_vector(6 downto 0);
+			HEX1			: out std_logic_vector(6 downto 0);
+			HEX2			: out std_logic_vector(6 downto 0);
+			HEX3			: out std_logic_vector(6 downto 0);
+			HEX4			: out std_logic_vector(6 downto 0);
+			HEX5			: out std_logic_vector(6 downto 0)
 		);
 	end component;
 
@@ -165,38 +222,44 @@ signal or_ready			: std_logic := '1';
 signal cas					: std_logic;
 signal addr					: std_logic_vector(15 downto 0);
 signal data					: std_logic_vector( 7 downto 0);
-signal mem_cs				: std_logic_vector( 3 downto 0);
-signal mem_we				: std_logic_vector( 3 downto 0);
+signal mem_cs				: std_logic_vector( 1 downto 0);
+signal mem_we				: std_logic_vector( 1 downto 0);
 signal rdn					: std_logic;
 signal wrn					: std_logic;
-signal dsyn					: std_logic;
+signal mreqn				: std_logic;
+signal dsyn_n				: std_logic;
 signal reset				: std_logic;
 signal video_bank			: std_logic_vector( 1 downto 0);
-signal video_mode			: std_logic_vector( 2 downto 0);
+signal video_mode			: std_logic_vector( 7 downto 0);
 signal vframe_end			: std_logic;
+signal mem_to_video		: std_logic;
 signal ports_cs			: std_logic_vector( 3 downto 0);
+signal MA					: std_logic_vector( 5 downto 0);
+signal pFC					: std_logic;
+signal SR16					: std_logic;
+signal debd					: std_logic_vector(15 downto 0);
 
 begin
 --------------------------------------------------------------------------------
 --                       СВЯЗЬ СИГНАЛОВ С ПИНАМИ МС                           --
 --------------------------------------------------------------------------------
 clk_50MHz <= CLOCK_50;
-LEDR(0) <= '0';
-LEDR(1) <= '0';
-LEDR(2) <= '0';
-LEDR(3) <= '0';
-LEDR(4) <= '0';
-LEDR(5) <= '0';
-LEDR(6) <= '0';
-LEDR(7) <= '0';
+LEDR(0) <= data(0);
+LEDR(1) <= data(1);
+LEDR(2) <= data(2);
+LEDR(3) <= data(3);
+LEDR(4) <= data(4);
+LEDR(5) <= data(5);
+LEDR(6) <= data(6);
+LEDR(7) <= data(7);
 LEDR(8) <= '0';
 LEDR(9) <= '0';
-HEX0 <= (others => '1');
+/*HEX0 <= (others => '1');
 HEX1 <= (others => '1');
 HEX2 <= (others => '1');
 HEX3 <= (others => '1');
 HEX4 <= (others => '1');
-HEX5 <= (others => '1');
+HEX5 <= (others => '1');*/
 
 --------------------------------------------------------------------------------
 --                      ПОДКЛЮЧЕНИЕ ВНЕШНИХ МОДУЛЕЙ                           --
@@ -231,47 +294,61 @@ video: orion_video_sch
 		MRDn		=> mem_cs,
 		rdn		=> rdn,
 		wrn		=> wrn,
+		mreqn		=> mreqn,
 		vbank		=> video_bank,
 		video_mode=> video_mode,
-		h480en	=> SW_debounced(9),
-		wide_en	=> SW_debounced(8),
-		dsyn		=> dsyn,
+		SR16		=> SW_debounced(8),
+		wide_en	=> SW_debounced(9),
+		dsyn_n	=> dsyn_n,
+		mem_to_video=> mem_to_video,
 		data		=> data,
 		R			=> VGA_R,
 		G			=> VGA_G,
 		B			=> VGA_B,
 		HS			=> VGA_HS,
 		VS			=> VGA_VS,
-		blank_n	=> VGA_BLANK_N,
-		frame_end=> vframe_end
+		--blank_n	=> VGA_BLANK_N,
+		frame_end=> vframe_end,
+		MA			=> MA,
+		pFC		=> pFC
 	);
-VGA_CLK <= clk_50MHz;
+VGA_CLK <= clk_100MHz;
 VGA_SYNC_N <= '0';
+VGA_BLANK_N <= '1';
 
-cpu: orion_cpu_sch
+cpu: orion_pro_cpu_sch
 	port map (
-		SW_debounced(1 downto 0),
+		--SW_debounced(1 downto 0),
+		"11", -- forse 10MHz
 		clk_20MHz,
 		clk_100MHz,
 		or_reset_btn or KEY_debounced(0),
 		vframe_end,
+		--"11111000",
+		SW_debounced(7 downto 0),
+		--"11" & SW_debounced(7 downto 2),
 		addr,
 		mem_we,
 		mem_cs,
 		rdn,
 		wrn,
+		mreqn,
 		video_bank,
 		video_mode,
-		dsyn,
+		dsyn_n,
 		reset,
 		ports_cs,
+		mem_to_video,
+		MA,
+		pFC,
+		SR16,
 		data
 	);
 
 pio: orion_pio
 	port map (
 		clk_100MHz,
-		not KEY_debounced(1),
+		reset,
 		addr,
 		data,
 		rdn,
@@ -279,7 +356,22 @@ pio: orion_pio
 		ports_cs,
 		PS2_CLK,
 		PS2_DAT,
-		or_reset_btn
+		or_reset_btn,
+		debd
+	);
+
+debug: orion_debug
+	port map (
+		clk_20MHz,
+		KEY_debounced(2),
+		debd,
+		8D"0",
+		HEX0,
+		HEX1,
+		HEX2,
+		HEX3,
+		HEX4,
+		HEX5
 	);
 
 end rtl;

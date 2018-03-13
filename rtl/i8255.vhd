@@ -22,150 +22,119 @@ end entity;
 
 architecture rtl of i8255 is
 
-signal control_reg	: std_logic_vector(6 downto 0);
---signal CR_mode_A		: std_logic_vector(1 downto 0);
-signal CR_A_IO			: std_logic;
-signal CR_Cup_IO		: std_logic;
---signal CR_mode_B		: std_logic;
-signal CR_B_IO			: std_logic;
-signal CR_Clo_IO		: std_logic;
+signal reg_A				: std_logic_vector(7 downto 0);
+signal reg_B				: std_logic_vector(7 downto 0);
+signal reg_C				: std_logic_vector(7 downto 0);
+signal control_reg		: std_logic_vector(7 downto 0);
 
-signal PA_IN			: std_logic_vector(7 downto 0);
-signal PB_IN			: std_logic_vector(7 downto 0);
-signal PC_INlo			: std_logic_vector(3 downto 0);
-signal PC_INhi			: std_logic_vector(3 downto 0);
-signal PA_OUT			: std_logic_vector(7 downto 0);
-signal PB_OUT			: std_logic_vector(7 downto 0);
-signal PC_OUT			: std_logic_vector(7 downto 0);
+signal Ain					: std_logic_vector(7 downto 0);
+signal Bin					: std_logic_vector(7 downto 0);
+signal Cin					: std_logic_vector(7 downto 0);
+signal Cinl					: std_logic_vector(3 downto 0);
+signal Cinh					: std_logic_vector(3 downto 0);
 
 begin
 
-	process (res, wr_n)
-	begin
-		if (res) then
-			control_reg <= "0011011";
-		elsif (falling_edge(wr_n)) then
-			if ((cs_n='0') and (addr="11") and (dbus(7)='1')) then
-				control_reg <= dbus(6 downto 0);
-			end if;
-		end if;
-	end process;
-
---CR_mode_A <= control_reg(6 downto 5);
-CR_A_IO	 <= control_reg(4);	-- all IO's: 0 - output, 1 - input
-CR_Cup_IO <= control_reg(3);
---CR_mode_B <= control_reg(2);
-CR_B_IO	 <= control_reg(1);
-CR_Clo_IO <= control_reg(0);
-
-	process (clk, cs_n)
-	begin
-		if (rising_edge(clk) and (cs_n = '0')) then
-			if (wr_n = '0') then
-				case (addr) is
-					when "00" =>	PA <= dbus;
-					when "01" =>	PB <= dbus;
-					when "10" =>	PC <= dbus;
-					when "11" =>	NULL;
-				end case;
-			end if;
-		end if;
-	end process;
-
-	process (clk, cs_n)
-	begin
-		if (rising_edge(clk) and (cs_n = '0')) then
-			if (rd_n = '0') then
-				case (addr) is
-					when "00" =>	dbus <= PA;
-					when "01" =>	dbus <= PB;
-					when "10" =>	dbus <= PC;
-					when "11" =>	NULL;
-				end case;
-			end if;
-		end if;
-	end process;
-
-	-- PA
-/*	process (clk)
-	begin
-		if (rising_edge(clk)) then
-			if (CR_A_IO = '1') then
-				PA <= (others => 'Z');
-				PA_IN <= PA;
-			else
-				PA_IN <= (others => 'Z');
-				PA <= PA_OUT;
-			end if;
-		end if;
-	end process;
-
-	-- PB
-	process (clk)
-	begin
-		if (rising_edge(clk)) then
-			if (CR_B_IO = '1') then
-				PB <= (others => 'Z');
-				PB_IN <= PB;
-			else
-				--PB_IN <= (others => 'Z');
-				--PB <= PB_OUT;
-			end if;
-		end if;
-	end process;
-
-	-- PClo
-	process (clk)
-	begin
-		if (rising_edge(clk)) then
-			if (CR_Clo_IO = '1') then
-				PC(3 downto 0) <= (others => 'Z');
-				PC_INlo <= PC(3 downto 0);
-			else
-				--PC_INlo <= (others => 'Z');
-				--PC(3 downto 0) <= PC_OUT(3 downto 0);
-			end if;
-		end if;
-	end process;
-
-	-- PCup
-	process (clk)
-	begin
-		if (rising_edge(clk)) then
-			if (CR_Cup_IO = '1') then
-				PC(7 downto 4) <= (others => 'Z');
-				PC_INhi <= PC(7 downto 4);
-			else
-				PC_INhi <= (others => 'Z');
-				PC(7 downto 4) <= PC_OUT(7 downto 4);
-			end if;
-		end if;
-	end process;
-
-	-- PX -> DBUS
-	process (rd_n)
-	begin
-		if (falling_edge(rd_n)) then
+process (clk)
+begin
+	if (rising_edge(clk)) then
+		if (res = '1') then
+			reg_A <= (others => '0');
+			reg_B <= (others => '0');
+			reg_C <= (others => '0');
+			control_reg <= X"9B";
+		elsif ((cs_n = '0') and (wr_n = '0')) then
 			case addr is
-				when "00" =>	dbus <= PA_IN;
-				when "01" =>	dbus <= PB_IN;
-				when "10" =>	dbus <= PC_INhi & PC_INlo;
-				when "11" =>	dbus <= (others => 'Z');
-			end case;
-		end if;
-	end process;
-
-	-- DBUS -> PX
-	process (wr_n)
-	begin
-		if (falling_edge(wr_n)) then
-			case addr is
-				when "00" =>	PA_OUT <= dbus;
-				when "01" =>	PB_OUT <= dbus;
-				when "10" =>	PC_OUT <= dbus;
+				when "00" => 	reg_A <= dbus;
+				when "01" => 	reg_B <= dbus;
+				when "10" =>	reg_C <= dbus;
 				when "11" =>	NULL;
 			end case;
+			
+			if (addr = "11") then	-- control register
+				if (dbus(7) = '1') then	-- immediate value
+					control_reg <= dbus;
+				else	-- set/reset bit in port C
+					if (dbus(1) = '1') then
+						-- set bit
+						case dbus(3 downto 1) is
+							when "000" => 	reg_C(0) <= '1';
+							when "001" => 	reg_C(1) <= '1';
+							when "010" => 	reg_C(2) <= '1';
+							when "011" => 	reg_C(3) <= '1';
+							when "100" => 	reg_C(4) <= '1';
+							when "101" => 	reg_C(5) <= '1';
+							when "110" => 	reg_C(6) <= '1';
+							when "111" => 	reg_C(7) <= '1';
+						end case;
+					else
+						-- reset bit
+						case dbus(3 downto 1) is
+							when "000" => 	reg_C(0) <= '0';
+							when "001" => 	reg_C(1) <= '0';
+							when "010" => 	reg_C(2) <= '0';
+							when "011" => 	reg_C(3) <= '0';
+							when "100" => 	reg_C(4) <= '0';
+							when "101" => 	reg_C(5) <= '0';
+							when "110" => 	reg_C(6) <= '0';
+							when "111" => 	reg_C(7) <= '0';
+						end case;
+					end if;
+				end if;
+			end if;
 		end if;
-	end process;*/
+	end if;
+end process;
+
+process (clk)
+begin
+	if (rising_edge(clk)) then
+		if (control_reg(4) = '1') then
+			PA <= (others => 'Z');
+		else
+			PA <= reg_A;
+		end if;
+
+		if (control_reg(1) = '1') then
+			PB <= (others => 'Z');
+		else
+			PB <= reg_B;
+		end if;
+
+		if (control_reg(0) = '1') then
+			PC(3 downto 0) <= (others => 'Z');
+		else
+			PC(3 downto 0) <= reg_C(3 downto 0);
+		end if;
+
+		if (control_reg(3) = '1') then
+			PC(7 downto 4) <= (others => 'Z');
+		else
+			PC(7 downto 4) <= reg_C(7 downto 4);
+		end if;
+	end if;
+end process;
+
+Ain	<= PA when (control_reg(4) = '1') else reg_A;
+Bin	<= PB when (control_reg(1) = '1') else reg_B;
+Cinl	<= PC(3 downto 0) when (control_reg(0) = '1') else reg_C(3 downto 0);
+Cinh	<= PC(7 downto 4) when (control_reg(3) = '1') else reg_C(7 downto 4);
+Cin	<= Cinh & Cinl;
+
+process (clk)
+begin
+	if (rising_edge(clk)) then
+		if ((cs_n = '0') and (rd_n = '0')) then
+			case addr is
+				when "00" => 	dbus <= Ain;
+				when "01" => 	dbus <= Bin;
+				when "10" =>	dbus <= Cin;
+				when "11" =>	dbus <= control_reg;
+			end case;
+		else
+			dbus <= (others => 'Z');
+		end if;
+	end if;
+end process;
 
 end rtl;

@@ -66,9 +66,9 @@ reg     [1:0]   prefix = 2'b00;
 
 always @(posedge clk) begin
 	if (reset) begin
-		shift			<= 1;
-		ctrl			<= 1;
-		caps			<= 1;
+		shift			<= 1'bz;
+		ctrl			<= 1'bz;
+		caps			<= 1'bz;
 		state			<= 0;
 		res_key         <= 0;
 		cpm             <= 0;
